@@ -1,0 +1,65 @@
+{
+  "_comment": "Configuration à coller dans Vapi (Dashboard > Assistants > Create Assistant > onglet 'JSON') ou à envoyer via l'API POST https://api.vapi.ai/assistant. Remplace <TON-URL-RAILWAY> par l'URL publique de ton serveur une fois déployé.",
+
+  "name": "Agent de prise de rendez-vous",
+
+  "firstMessage": "Bonjour, vous êtes bien en contact avec l'assistant de prise de rendez-vous. Comment puis-je vous aider aujourd'hui ?",
+
+  "model": {
+    "provider": "openai",
+    "model": "gpt-4o",
+    "temperature": 0.4,
+    "systemPrompt": "Tu es un assistant téléphonique poli et efficace qui prend des rendez-vous pour une entreprise. Ton rôle :\n1. Comprendre le motif de l'appel.\n2. Demander le nom complet et le numéro de téléphone du client.\n3. Demander la date souhaitée, puis utiliser l'outil check_availability pour proposer des créneaux disponibles.\n4. Une fois qu'un créneau est choisi, utiliser l'outil book_appointment pour confirmer la réservation.\n5. Confirmer oralement le rendez-vous avant de raccrocher.\nReste bref, naturel et chaleureux. Ne propose jamais un créneau sans avoir vérifié sa disponibilité avec check_availability. Si aucun créneau n'est disponible, propose un autre jour."
+  },
+
+  "voice": {
+    "provider": "11labs",
+    "voiceId": "REMPLACE_PAR_UNE_VOIX_ELEVENLABS"
+  },
+
+  "serverUrl": "<TON-URL-RAILWAY>/vapi/webhook",
+  "serverUrlSecret": "<LA-MEME-VALEUR-QUE-VAPI_SERVER_SECRET-DANS-.ENV>",
+
+  "functions": [
+    {
+      "name": "check_availability",
+      "description": "Vérifie les créneaux disponibles pour une date donnée.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Date souhaitée au format YYYY-MM-DD"
+          }
+        },
+        "required": ["date"]
+      }
+    },
+    {
+      "name": "book_appointment",
+      "description": "Réserve un rendez-vous à un horaire précis pour un client.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "start_time": {
+            "type": "string",
+            "description": "Date et heure de début au format ISO 8601, ex : 2026-08-20T14:30:00"
+          },
+          "customer_name": {
+            "type": "string",
+            "description": "Nom complet du client"
+          },
+          "customer_phone": {
+            "type": "string",
+            "description": "Numéro de téléphone du client"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Motif du rendez-vous"
+          }
+        },
+        "required": ["start_time", "customer_name"]
+      }
+    }
+  ]
+}
