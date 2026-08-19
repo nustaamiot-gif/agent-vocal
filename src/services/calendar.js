@@ -1,15 +1,21 @@
 const { google } = require("googleapis");
 
 function getAuth() {
-  const privateKey = (process.env.GOOGLE_PRIVATE_KEY || "").replace(/\\n/g, "\n");
+  let privateKey = process.env.GOOGLE_PRIVATE_KEY || "";
+  privateKey = privateKey.trim();
+  if ((privateKey.startsWith('"') && privateKey.endsWith('"')) || (privateKey.startsWith("'") && privateKey.endsWith("'"))) {
+    privateKey = privateKey.slice(1, -1);
+  }
+  privateKey = privateKey.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n").replace(/\r/g, "").trim();
+
   if (!process.env.GOOGLE_CLIENT_EMAIL || !privateKey) {
     throw new Error("Variables GOOGLE_CLIENT_EMAIL / GOOGLE_PRIVATE_KEY manquantes.");
   }
-  return new google.auth.JWT({
-    email: process.env.GOOGLE_CLIENT_EMAIL,
-    key: privateKey,
-    scopes: ["https://www.googleapis.com/auth/calendar"],
-  });
+  if (!privateKey.includes("BEGIN PRIVATE KEY")) {
+    throw new Error("GOOGLE_PRIVATE_KEY semble incomplète ou mal copiée. Recopie la valeur exacte du fichier JSON du compte de service.");
+  }
+
+  return new google.auth.JWT({ email: process.env.GOOGLE_CLIENT_EMAIL, key: privateKey, scopes: ["https://www.googleapis.com/auth/calendar"] });
 }
 
 function getCalendarClient() {
